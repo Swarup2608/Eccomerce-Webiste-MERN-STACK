@@ -11,8 +11,15 @@ import orderRouter from './routes/orderRoutes.js';
 //App config
 const app = express();
 const port  = process.env.PORT || 4000;
+
+// Connect to Database
 connectDB();
-connectCloudinary();
+
+// Connect to Cloudinary
+connectCloudinary().catch((error) => {
+    console.error('Failed to connect to Cloudinary. Some image upload features may not work.');
+    process.exit(1);
+});
 
 
 //Middle ware
