@@ -10,7 +10,6 @@ import HeroCarousel from '@/components/HeroCarousel';
 import Marquee from '@/components/Marquee';
 import { useTilt } from '@/hooks/useTilt';
 
-const CATEGORIES = ['Men', 'Women', 'Kids'];
 const PROMISES = [
   { t: 'Repair-rated', d: 'Every listing carries a repairability score and the parts to back it up.' },
   { t: 'Carbon-labelled', d: 'We publish the footprint of making and shipping each item, not just the price.' },
@@ -43,7 +42,7 @@ function CategoryCard({ label, count, mark }: { label: string; count: number; ma
 }
 
 export default function Home() {
-  const { products } = useShop();
+  const { products, categories } = useShop();
 
   const featured = useMemo(() => {
     const bestSellers = products.filter((p) => p.bestSeller);
@@ -93,14 +92,14 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 26, flexWrap: 'wrap' }}>
             <div>
               <h6 style={{ color: 'var(--color-accent-300)', marginBottom: 10 }}>Categories</h6>
-              <h2 style={{ letterSpacing: '-.025em', margin: 0 }}>Three shelves, one standard</h2>
+              <h2 style={{ letterSpacing: '-.025em', margin: 0 }}>Every shelf, one standard</h2>
             </div>
             <Link href="/collections" className="btn btn-ghost">Browse everything →</Link>
           </div>
         </Reveal>
         <div className="grid-auto-fit">
-          {CATEGORIES.map((c) => (
-            <CategoryCard key={c} label={c} count={categoryCounts[c] || 0} mark={c[0]} />
+          {categories.map((c) => (
+            <CategoryCard key={c._id} label={c.name} count={categoryCounts[c.name] || 0} mark={c.name[0]} />
           ))}
         </div>
       </section>

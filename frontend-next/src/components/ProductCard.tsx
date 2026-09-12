@@ -10,7 +10,7 @@ import { useTilt } from '@/hooks/useTilt';
 export default function ProductCard({ product }: { product: Product }) {
   const { currency, addToCart } = useShop();
   const { ref, onMouseMove, onMouseLeave } = useTilt();
-  const soldOut = product.sizes.length === 0;
+  const soldOut = product.sizes.every((s) => s.stock <= 0);
 
   return (
     <Reveal>
@@ -46,7 +46,7 @@ export default function ProductCard({ product }: { product: Product }) {
             className="btn btn-primary"
             disabled={soldOut}
             style={{ fontSize: 13 }}
-            onClick={() => addToCart(product._id, product.sizes[0])}
+            onClick={() => addToCart(product._id, product.sizes.find((s) => s.stock > 0)?.size ?? '')}
           >
             Add
           </button>

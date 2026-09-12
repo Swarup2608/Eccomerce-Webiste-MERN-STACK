@@ -3,10 +3,15 @@ import cors from 'cors';
 import 'dotenv/config';
 import connectDB from './config/mongodb.js'
 import connectCloudinary from './config/cloudinary.js';
+import ensureAdminSeed from './config/bootstrapAdmin.js';
+import ensureCategorySeed from './config/bootstrapCategories.js';
 import userRouter from './routes/userRoute.js';
 import productRouter from './routes/productRoute.js';
 import cartRouter from './routes/cartRoutes.js';
 import orderRouter from './routes/orderRoutes.js';
+import categoryRouter from './routes/categoryRoutes.js';
+import couponRouter from './routes/couponRoutes.js';
+import analyticsRouter from './routes/analyticsRoutes.js';
 
 //App config
 const app = express();
@@ -14,6 +19,8 @@ const port  = process.env.PORT || 4000;
 
 // Connect to Database
 connectDB();
+ensureAdminSeed();
+ensureCategorySeed();
 
 // Connect to Cloudinary
 connectCloudinary().catch((error) => {
@@ -31,6 +38,9 @@ app.use('/api/user', userRouter);
 app.use('/api/product', productRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/order', orderRouter);
+app.use('/api/category', categoryRouter);
+app.use('/api/coupon', couponRouter);
+app.use('/api/analytics', analyticsRouter);
 
 app.get('/',(req,res)=>{
     res.send("API WORKING");

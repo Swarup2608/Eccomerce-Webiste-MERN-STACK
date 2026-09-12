@@ -4,10 +4,11 @@ import { createContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import type { CartItems, Product } from '@/lib/types';
+import type { CartItems, Category, Product } from '@/lib/types';
 
 interface ShopContextValue {
   products: Product[];
+  categories: Category[];
   currency: string;
   delivery_fee: number;
   search: string;
@@ -36,6 +37,7 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState<CartItems>({});
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [token, setToken] = useState('');
   const router = useRouter();
 
@@ -130,6 +132,17 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getCategoryData = async () => {
+    try {
+      const response = await axios.get(backendURL + '/api/category/list');
+      if (response.data.success) {
+        setCategories(response.data.categories);
+      }
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
   const logout = () => {
     setToken('');
     localStorage.removeItem('token');
@@ -139,6 +152,7 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     getProductData();
+    getCategoryData();
     const stored = localStorage.getItem('token');
     if (!token && stored) {
       setToken(stored);
@@ -148,7 +162,7 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value: ShopContextValue = {
-    products, currency, delivery_fee,
+    products, categories, currency, delivery_fee,
     search, setSearch, showSearch, setShowSearch,
     cartItems, setCartItems, addToCart, getCartCount, updateQuantity,
     getCartAmount, backendURL, token, setToken, logout,

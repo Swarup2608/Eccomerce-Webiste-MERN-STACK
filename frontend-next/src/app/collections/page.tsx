@@ -5,8 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { useShop } from '@/context/useShop';
 import ProductCard from '@/components/ProductCard';
 
-const CATEGORIES = ['Men', 'Women', 'Kids'];
-const SUBCATEGORIES = ['Topwear', 'Bottomwear', 'Winterwear'];
 const SORTS = [
   { key: 'relevant', label: 'Relevant' },
   { key: 'low-high', label: 'Price: low to high' },
@@ -14,12 +12,19 @@ const SORTS = [
 ];
 
 function CollectionsInner() {
-  const { products, search, setSearch } = useShop();
+  const { products, categories, search, setSearch } = useShop();
   const params = useSearchParams();
   const [category, setCategory] = useState<string[]>([]);
   const [subCategory, setSubCategory] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortType, setSortType] = useState('relevant');
+
+  const categoryNames = useMemo(() => categories.map((c) => c.name), [categories]);
+  const subCategoryOptions = useMemo(() => {
+    const set = new Set<string>();
+    categories.forEach((c) => c.subCategories.forEach((s) => set.add(s)));
+    return Array.from(set);
+  }, [categories]);
 
   useEffect(() => {
     const fromUrl = params.get('category');
@@ -35,7 +40,7 @@ function CollectionsInner() {
     if (search) out = out.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
     if (category.length) out = out.filter((p) => category.includes(p.category));
     if (subCategory.length) out = out.filter((p) => subCategory.includes(p.subCategory));
-    if (inStockOnly) out = out.filter((p) => p.sizes.length > 0);
+    if (inStockOnly) out = out.filter((p) => p.sizes.some((s) => s.stock > 0));
     if (sortType === 'low-high') out.sort((a, b) => a.price - b.price);
     if (sortType === 'high-low') out.sort((a, b) => b.price - a.price);
     return out;
@@ -61,7 +66,7 @@ function CollectionsInner() {
             Category
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 24 }}>
-            {CATEGORIES.map((c) => (
+            {categoryNames.map((c) => (
               <label key={c} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, cursor: 'pointer' }}>
                 <span className={`check ${category.includes(c) ? 'on' : ''}`}>
                   {category.includes(c) && (
@@ -78,7 +83,7 @@ function CollectionsInner() {
             Type
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 24 }}>
-            {SUBCATEGORIES.map((s) => (
+            {subCategoryOptions.map((s) => (
               <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, cursor: 'pointer' }}>
                 <span className={`check ${subCategory.includes(s) ? 'on' : ''}`}>
                   {subCategory.includes(s) && (

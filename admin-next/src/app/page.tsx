@@ -9,7 +9,7 @@ export default function AdminHome() {
   const { token, ready } = useAdmin();
 
   useEffect(() => {
-    if (ready && token) router.replace('/add');
+    if (ready && token) router.replace('/dashboard');
   }, [ready, token, router]);
 
   return null;

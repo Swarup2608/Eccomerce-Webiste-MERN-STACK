@@ -1,7 +1,7 @@
 import express from 'express'
 import authUser from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
-import { allOrders, placeOrder, placeOrderRazorPay, placeOrderStripe, updateOrderStatus, userOrders, verifyRazorPayment, verifyStripe } from '../controllers/orderController.js';
+import { allOrders, placeOrder, placeOrderRazorPay, placeOrderStripe, updateOrderStatus, userOrders, verifyRazorPayment, verifyStripe, bulkUpdateStatus, refundOrder } from '../controllers/orderController.js';
 
 const orderRouter = express.Router();
 // POST METHODS
@@ -9,6 +9,8 @@ const orderRouter = express.Router();
 // Admin Features
 orderRouter.post("/list",adminAuth,allOrders);
 orderRouter.post("/statusupdate",adminAuth,updateOrderStatus);
+orderRouter.post("/bulk-status",adminAuth,bulkUpdateStatus);
+orderRouter.post("/refund",adminAuth,refundOrder);
 
 // Payment Features
 orderRouter.post("/place",authUser,placeOrder);

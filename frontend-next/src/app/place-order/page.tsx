@@ -34,6 +34,9 @@ export default function PlaceOrder() {
   const [formData, setFormData] = useState<OrderAddress>({
     firstName: '', lastName: '', email: '', street: '', city: '', state: '', zipcode: '', country: '', phone: '',
   });
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const rows = useMemo(() => {
     const out: { product: (typeof products)[number]; size: string; qty: number }[] = [];
@@ -48,10 +51,39 @@ export default function PlaceOrder() {
   }, [cartItems, products]);
 
   const amount = getCartAmount();
-  const total = amount === 0 ? 0 : amount + delivery_fee;
+  const discount = appliedCoupon?.discount ?? 0;
+  const total = amount === 0 ? 0 : amount - discount + delivery_fee;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((d) => ({ ...d, [e.target.name]: e.target.value }));
+  };
+
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setApplyingCoupon(true);
+    try {
+      const { data } = await axios.post(
+        backendURL + '/api/coupon/validate',
+        { code: couponInput.trim(), itemsAmount: amount },
+        { headers: { token } }
+      );
+      if (data.success) {
+        setAppliedCoupon({ code: data.code, discount: data.discount });
+        toast.success(`Coupon applied — you saved ${currency}${data.discount}`);
+      } else {
+        setAppliedCoupon(null);
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
   };
 
   const initPay = (order: any) => {
@@ -85,20 +117,12 @@ export default function PlaceOrder() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const orderItems = [];
-      for (const items in cartItems) {
-        for (const item in cartItems[items]) {
-          if (cartItems[items][item] > 0) {
-            const itemInfo = structuredClone(products.find((p) => p._id === items));
-            if (itemInfo) {
-              (itemInfo as any).size = item;
-              (itemInfo as any).quantity = cartItems[items][item];
-              orderItems.push(itemInfo);
-            }
-          }
-        }
-      }
-      const orderData = { address: formData, items: orderItems, amount: getCartAmount() + delivery_fee };
+      const orderItems = rows.map((r) => ({ productId: r.product._id, size: r.size, quantity: r.qty }));
+      const orderData = {
+        address: formData,
+        items: orderItems,
+        couponCode: appliedCoupon?.code,
+      };
 
       if (method === 'cod') {
         const response = await axios.post(backendURL + '/api/order/place', orderData, { headers: { token } });
@@ -198,9 +222,37 @@ export default function PlaceOrder() {
               </div>
             ))}
             <div className="hr" style={{ margin: '14px 0' }} />
+
+            {appliedCoupon ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span className="tag tag-accent">{appliedCoupon.code} applied</span>
+                <button type="button" onClick={removeCoupon} style={{ background: 'none', border: 0, color: 'var(--color-neutral-500)', cursor: 'pointer', fontSize: 12.5 }}>
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                <input
+                  className="input"
+                  placeholder="Coupon code"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button type="button" className="btn btn-secondary" onClick={applyCoupon} disabled={applyingCoupon}>
+                  {applyingCoupon ? 'Checking…' : 'Apply'}
+                </button>
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, padding: '6px 0', color: 'var(--color-neutral-300)' }}>
               <span>Subtotal</span><span>{currency}{amount}</span>
             </div>
+            {discount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, padding: '6px 0', color: 'var(--color-accent-300)' }}>
+                <span>Discount</span><span>-{currency}{discount}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, padding: '6px 0', color: 'var(--color-neutral-300)' }}>
               <span>Shipping</span><span>{currency}{delivery_fee}</span>
             </div>

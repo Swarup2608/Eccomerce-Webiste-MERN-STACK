@@ -3,14 +3,25 @@
 import { usePathname } from 'next/navigation';
 
 const TITLES: Record<string, [string, string]> = {
+  '/dashboard': ['Dashboard', 'Revenue, orders and best sellers at a glance'],
   '/add': ['Add items', 'Publish a new product to the store'],
   '/list': ['List items', 'Every product currently live'],
+  '/categories': ['Categories', 'Manage the categories and sub-categories shoppers filter by'],
   '/orders': ['Orders', 'Track and update fulfilment status'],
+  '/customers': ['Customers', 'Every registered shopper'],
+  '/coupons': ['Coupons', 'Discount codes shoppers can redeem at checkout'],
 };
+
+function titleFor(pathname: string): [string, string] {
+  if (TITLES[pathname]) return TITLES[pathname];
+  if (pathname.startsWith('/customers/')) return ['Customer', 'Profile and order history'];
+  if (pathname.startsWith('/edit/')) return ['Edit product', 'Update details, images and stock'];
+  return ['Admin', ''];
+}
 
 export default function Topbar() {
   const pathname = usePathname();
-  const [title, sub] = TITLES[pathname] || ['Admin', ''];
+  const [title, sub] = titleFor(pathname);
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '15px 24px', boxShadow: '0 1px 0 var(--color-divider)' }}>

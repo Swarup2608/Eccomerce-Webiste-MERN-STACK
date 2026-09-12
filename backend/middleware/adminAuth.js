@@ -7,13 +7,14 @@ const adminAuth = async (req,res,next) =>{
             return res.json({success: false,message:"Not Authorized Login Again!"});
         }
         const token_decode = JWT.verify(token,process.env.JWT_SECRET_KEY);
-        if(token_decode !== process.env.ADMIN_EMAIL+process.env.ADMIN_PASSWORD){
+        if(!token_decode || token_decode.role !== "admin"){
             return res.json({success:false,message:"Not Authorized Login Again!"});
         }
+        req.admin = token_decode;
         next();
     } catch (error) {
         console.log("Error checking Admin Authentcation : " + error);
-        res.json({ success: false, message: err.message });
+        res.json({ success: false, message: error.message });
     }
 }
 

@@ -1,3 +1,17 @@
+export interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  subCategories: string[];
+  sortOrder: number;
+  active: boolean;
+}
+
+export interface ProductSize {
+  size: string;
+  stock: number;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -6,7 +20,7 @@ export interface Product {
   image: string[];
   category: string;
   subCategory: string;
-  sizes: string[];
+  sizes: ProductSize[];
   bestSeller?: boolean;
   date?: number;
 }

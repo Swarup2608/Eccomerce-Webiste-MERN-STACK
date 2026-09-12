@@ -5,9 +5,13 @@ import { usePathname } from 'next/navigation';
 import { useAdmin } from '@/context/useAdmin';
 
 const NAV = [
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/add', label: 'Add items' },
   { href: '/list', label: 'List items' },
+  { href: '/categories', label: 'Categories' },
   { href: '/orders', label: 'Orders' },
+  { href: '/customers', label: 'Customers' },
+  { href: '/coupons', label: 'Coupons' },
 ];
 
 export default function Sidebar() {

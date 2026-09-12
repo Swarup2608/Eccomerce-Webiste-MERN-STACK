@@ -1,6 +1,7 @@
 import validator from 'validator';
 import bcrypt from 'bcrypt';
 import userModel from "../models/userModel.js";
+import adminModel from "../models/adminModel.js";
 import JWT from 'jsonwebtoken';
 
 // CREATE TOKEN
@@ -23,6 +24,9 @@ const loginUser = async (req, res) => {
         const user = await userModel.findOne({ email });
         if (!user) {
             return res.json({ success: false, message: "User not found!" });
+        }
+        if (user.isBlocked) {
+            return res.json({ success: false, message: "This account has been suspended. Contact support for help." });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
@@ -79,14 +83,19 @@ const registerUser = async (req, res) => {
 const adminLogin = async (req, res) => {
 
     try {
-        const {email,password} = req.body
-        if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD){
-            const token = JWT.sign(email+password,process.env.JWT_SECRET_KEY)
-            return res.json({success:true,token});
+        const {email,password} = req.body;
+        const admin = await adminModel.findOne({ email });
+        if (!admin) {
+            return res.json({success:false,message:"Invalid Credentials!"});
         }
-        return res.json({success:false,message:"Invalid Credentials!"})
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.json({success:false,message:"Invalid Credentials!"});
+        }
+        const token = JWT.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
+        return res.json({success:true,token});
     } catch (error) {
-        
+
         console.log("Error Logging admin : " + error);
         res.json({ success: false, message: error.message });
     }

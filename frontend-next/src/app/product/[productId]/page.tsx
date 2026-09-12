@@ -30,7 +30,7 @@ export default function ProductDetail() {
 
   if (!product) return <main className="container" style={{ padding: '80px 26px' }} />;
 
-  const soldOut = product.sizes.length === 0;
+  const soldOut = product.sizes.every((s) => s.stock <= 0);
 
   const handleAdd = () => {
     if (!size) {
@@ -99,21 +99,27 @@ export default function ProductDetail() {
               Select size
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {product.sizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => { setSize(s); setSizeError(false); }}
-                  className="btn"
-                  style={{
-                    border: `1px solid ${size === s ? 'var(--color-accent)' : 'var(--color-divider)'}`,
-                    color: size === s ? 'var(--color-accent)' : 'var(--color-text)',
-                    minWidth: 44,
-                  }}
-                >
-                  {s}
-                </button>
-              ))}
+              {product.sizes.map((s) => {
+                const outOfStock = s.stock <= 0;
+                return (
+                  <button
+                    key={s.size}
+                    type="button"
+                    disabled={outOfStock}
+                    onClick={() => { setSize(s.size); setSizeError(false); }}
+                    className="btn"
+                    title={outOfStock ? 'Out of stock' : `${s.stock} left`}
+                    style={{
+                      border: `1px solid ${size === s.size ? 'var(--color-accent)' : 'var(--color-divider)'}`,
+                      color: size === s.size ? 'var(--color-accent)' : 'var(--color-text)',
+                      minWidth: 44,
+                      textDecoration: outOfStock ? 'line-through' : 'none',
+                    }}
+                  >
+                    {s.size}
+                  </button>
+                );
+              })}
             </div>
             {sizeError && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 10, fontSize: 12.5, color: 'var(--color-accent-2-300)' }}>
@@ -139,7 +145,7 @@ export default function ProductDetail() {
             {[
               ['Category', product.category],
               ['Sub-category', product.subCategory],
-              ['Sizes', product.sizes.join(', ') || '—'],
+              ['Sizes', product.sizes.map((s) => s.size).join(', ') || '—'],
               ['Delivery', 'Cash on delivery available'],
               ['Returns', 'Easy return & exchange within 7 days'],
               ['Origin', 'Audited maker network'],

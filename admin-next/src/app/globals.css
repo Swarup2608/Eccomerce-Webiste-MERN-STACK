@@ -241,6 +241,27 @@ textarea.input { min-height: 90px; resize: vertical; }
 }
 .upload-slot img { width: 100%; height: 100%; object-fit: cover; }
 
+/* — data viz tokens (validated against --color-bg #161826, dark mode only) — */
+.viz-root {
+  --viz-series-1: #3987e5;
+  --viz-series-2: #d95926;
+  --viz-series-3: #199e70;
+  --viz-series-4: #c98500;
+  --viz-series-5: #d55181;
+  --viz-series-6: #008300;
+  --viz-series-7: #9085e9;
+  --viz-series-8: #e66767;
+  --viz-good: #0ca30c;
+  --viz-warning: #fab219;
+  --viz-serious: #ec835a;
+  --viz-critical: #d03b3b;
+  --viz-grid: #2c2c2a;
+  --viz-muted: #898781;
+}
+.stat-tile { padding: 18px 20px; }
+.stat-tile-value { font: 500 28px/1.1 Inter; letter-spacing: -.02em; }
+.stat-tile-label { font-size: 12px; color: var(--color-neutral-500); margin-top: 6px; }
+
 @media (max-width: 900px) {
   h1 { font-size: 34px; }
   h2 { font-size: 26px; }
