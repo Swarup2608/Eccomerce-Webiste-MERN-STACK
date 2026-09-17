@@ -28,10 +28,43 @@ connectCloudinary().catch((error) => {
     process.exit(1);
 });
 
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    process.env.ADMIN_URL,
+].filter(Boolean);
 
 //Middle ware
 app.use(express.json());
-app.use(cors());
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow requests without an Origin header
+            // (e.g. server-to-server, Postman, curl)
+            if (!origin) {
+                return callback(null, true);
+            }
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error('Not allowed by CORS'));
+        },
+
+        credentials: true,
+
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+        ],
+
+        maxAge: 86400,
+
+        optionsSuccessStatus: 204,
+    })
+);
 
 // API end Points
 app.use('/api/user', userRouter);
