@@ -1,22 +1,29 @@
-import categoryModel from "../models/categoryModel.js";
+import categoryModel, { ISubCategory } from "../models/categoryModel.js";
 
-const slugify = (name) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+export const slugify = (name: string): string =>
+    name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 const SIZE_OPTIONS = ["S", "M", "L", "XL", "XXL"];
 
-const sizeSubCategory = (name) => ({
+const sizeSubCategory = (name: string): ISubCategory => ({
     name,
     filterKey: "size",
     filterLabel: "Size",
     filterOptions: SIZE_OPTIONS
 });
 
+interface CategorySeed {
+    name: string;
+    sortOrder: number;
+    subCategories: ISubCategory[];
+}
+
 // Seeds the storefront's starting taxonomy. Each sub-category carries its
 // own filter definition (label + option list) so the storefront filter
 // sidebar and the admin product form both know what to ask for without any
 // code change — e.g. a belt asks for "Material", a bag asks for "Color", a
 // t-shirt asks for "Size".
-const DEFAULT_CATEGORIES = [
+export const DEFAULT_CATEGORIES: CategorySeed[] = [
     {
         name: "Men",
         sortOrder: 1,
@@ -66,7 +73,7 @@ const DEFAULT_CATEGORIES = [
 
 // Seeds the default categories so existing products keep matching a real
 // category record with no manual re-entry.
-const ensureCategorySeed = async () => {
+const ensureCategorySeed = async (): Promise<void> => {
     try {
         const count = await categoryModel.countDocuments();
         if (count > 0) return;
@@ -75,10 +82,9 @@ const ensureCategorySeed = async () => {
             DEFAULT_CATEGORIES.map((c) => ({ ...c, slug: slugify(c.name) }))
         );
         console.log("Seeded default categories: " + DEFAULT_CATEGORIES.map((c) => c.name).join(", "));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to seed categories: " + error.message);
     }
 };
 
 export default ensureCategorySeed;
-export { DEFAULT_CATEGORIES, slugify };

@@ -1,20 +1,22 @@
-import categoryModel from "../models/categoryModel.js";
+import type { RequestHandler } from "express";
+import categoryModel, { ISubCategory } from "../models/categoryModel.js";
 import productModel from "../models/productModel.js";
 
-const slugify = (name) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const slugify = (name: string): string =>
+    name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 // Normalizes admin-submitted sub-categories into the stored shape. filterKey
 // is always server-derived from filterLabel (never trusted from the
 // client) so two sub-categories that mean the same filter (e.g. "Material"
 // on Belts and on Jewellery) always share one key, and admin typos in
 // casing/spacing can't fork it into two keys.
-const normalizeSubCategories = (subCategories) => {
+const normalizeSubCategories = (subCategories: any): ISubCategory[] => {
     if (!Array.isArray(subCategories)) return [];
-    return subCategories.map((sc, index) => {
+    return subCategories.map((sc: any, index: number) => {
         const name = String(sc?.name ?? "").trim();
         const filterLabel = String(sc?.filterLabel ?? "").trim();
         const filterOptions = Array.isArray(sc?.filterOptions)
-            ? sc.filterOptions.map((o) => String(o).trim()).filter(Boolean)
+            ? sc.filterOptions.map((o: unknown) => String(o).trim()).filter(Boolean)
             : [];
         if (!name) throw new Error(`Sub-category #${index + 1} needs a name.`);
         if (!filterLabel) throw new Error(`Sub-category "${name}" needs a filter label (e.g. Size, Color, Material).`);
@@ -24,7 +26,7 @@ const normalizeSubCategories = (subCategories) => {
 };
 
 // Add Category (admin)
-const addCategory = async (req, res) => {
+const addCategory: RequestHandler = async (req, res) => {
     try {
         const { name, subCategories, sortOrder } = req.body;
         if (!name || !name.trim()) {
@@ -43,14 +45,14 @@ const addCategory = async (req, res) => {
         });
         await category.save();
         res.json({ success: true, message: "Category added.", category });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Error creating category: " + error.message });
     }
 };
 
 // Update Category (admin)
-const updateCategory = async (req, res) => {
+const updateCategory: RequestHandler = async (req, res) => {
     try {
         const { id, name, subCategories, sortOrder, active } = req.body;
         const category = await categoryModel.findById(id);
@@ -71,14 +73,14 @@ const updateCategory = async (req, res) => {
         if (active !== undefined) category.active = !!active;
         await category.save();
         res.json({ success: true, message: "Category updated.", category });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Error updating category: " + error.message });
     }
 };
 
 // Remove Category (admin) — blocked if any product still references it
-const removeCategory = async (req, res) => {
+const removeCategory: RequestHandler = async (req, res) => {
     try {
         const { id } = req.body;
         const category = await categoryModel.findById(id);
@@ -91,29 +93,29 @@ const removeCategory = async (req, res) => {
         }
         await categoryModel.findByIdAndDelete(id);
         res.json({ success: true, message: "Category removed." });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Error removing category: " + error.message });
     }
 };
 
 // List Categories (public — storefront only sees active categories)
-const listCategories = async (req, res) => {
+const listCategories: RequestHandler = async (req, res) => {
     try {
         const categories = await categoryModel.find({ active: true }).sort({ sortOrder: 1, name: 1 });
         res.json({ success: true, categories });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Error getting categories: " + error.message });
     }
 };
 
 // List Categories for admin (adminAuth — includes inactive categories so they can be re-enabled)
-const adminListCategories = async (req, res) => {
+const adminListCategories: RequestHandler = async (req, res) => {
     try {
         const categories = await categoryModel.find({}).sort({ sortOrder: 1, name: 1 });
         res.json({ success: true, categories });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Error getting categories: " + error.message });
     }

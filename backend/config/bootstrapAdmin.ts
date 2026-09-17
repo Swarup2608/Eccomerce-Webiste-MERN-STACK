@@ -4,7 +4,7 @@ import adminModel from "../models/adminModel.js";
 // Seeds one admin account from env vars on first boot only. Once a real
 // admin record exists in the DB, ADMIN_EMAIL/ADMIN_PASSWORD are no longer
 // read for login — they only matter for this one-time bootstrap.
-const ensureAdminSeed = async () => {
+const ensureAdminSeed = async (): Promise<void> => {
     try {
         const count = await adminModel.countDocuments();
         if (count > 0) return;
@@ -20,7 +20,7 @@ const ensureAdminSeed = async () => {
         const hashedPassword = await bcrypt.hash(password, salt);
         await adminModel.create({ email, password: hashedPassword });
         console.log(`Seeded initial admin account (${email}) from environment variables.`);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to seed admin account: " + error.message);
     }
 };

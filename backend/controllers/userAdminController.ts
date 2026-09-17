@@ -1,11 +1,12 @@
+import type { RequestHandler } from "express";
 import userModel from "../models/userModel.js";
 import orderModel from "../models/orderModel.js";
 
 // List customers (admin) — paginated + searchable, password always excluded.
-const listUsers = async (req, res) => {
+const listUsers: RequestHandler = async (req, res) => {
     try {
         const { page = 1, limit = 20, search } = req.body;
-        const filter = {};
+        const filter: Record<string, any> = {};
         if (search) {
             const re = new RegExp(search.trim(), 'i');
             filter.$or = [{ name: re }, { email: re }];
@@ -23,14 +24,14 @@ const listUsers = async (req, res) => {
         const withJoinDate = users.map((u) => ({ ...u.toObject(), joinedAt: u._id.getTimestamp() }));
 
         res.json({ success: true, users: withJoinDate, total, page: pageNum, pages: Math.ceil(total / limitNum) || 1 });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
 // Customer profile + order history + spend summary (admin)
-const getUserDetail = async (req, res) => {
+const getUserDetail: RequestHandler = async (req, res) => {
     try {
         const { userId } = req.body;
         const user = await userModel.findById(userId, '-password -cartData');
@@ -45,20 +46,20 @@ const getUserDetail = async (req, res) => {
             orders,
             summary: { orderCount: orders.length, totalSpend },
         });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
 // Block / unblock a customer (admin)
-const setUserBlocked = async (req, res) => {
+const setUserBlocked: RequestHandler = async (req, res) => {
     try {
         const { userId, isBlocked } = req.body;
         const user = await userModel.findByIdAndUpdate(userId, { isBlocked: !!isBlocked }, { new: true });
         if (!user) return res.json({ success: false, message: "Customer not found." });
         res.json({ success: true, message: isBlocked ? "Customer blocked." : "Customer unblocked." });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }

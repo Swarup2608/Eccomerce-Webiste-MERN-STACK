@@ -1,6 +1,6 @@
-import {v2 as cloudinary} from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 
-const connectCloudinary = async () => {
+const connectCloudinary = async (): Promise<boolean> => {
     try {
         // Check if required environment variables are present
         if (!process.env.CLOUDINARY_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY) {
@@ -17,7 +17,7 @@ const connectCloudinary = async () => {
         await cloudinary.api.ping();
         console.log('✅ Cloudinary connected successfully');
         return true;
-    } catch (error) {
+    } catch (error: any) {
         console.error('❌ Cloudinary connection failed:', error.message);
         throw error;
     }

@@ -1,11 +1,15 @@
+import type { RequestHandler } from "express";
 import userModel from "../models/userModel.js";
 
 // Add products to User Cart
-const addToCart = async (req, res) => {
+const addToCart: RequestHandler = async (req, res) => {
     try {
         const { userId, itemId, variant } = req.body;
         const userData = await userModel.findById(userId);
-        let cartData = await userData.cartData;
+        if (!userData) {
+            return res.json({ success: false, message: "User not found." });
+        }
+        let cartData = userData.cartData;
         if (cartData[itemId]) {
             if (cartData[itemId][variant]) {
                 cartData[itemId][variant] += 1
@@ -20,7 +24,7 @@ const addToCart = async (req, res) => {
         }
         await userModel.findByIdAndUpdate(userId, { cartData });
         res.json({ success: true, message: "Added to Cart!" });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
     }
@@ -28,12 +32,15 @@ const addToCart = async (req, res) => {
 }
 
 // Update User Cart
-const updateUserCart = async (req, res) => {
+const updateUserCart: RequestHandler = async (req, res) => {
     try {
         const { userId, itemId, variant, quantity } = req.body;
 
         const userData = await userModel.findById(userId);
-        let cartData = await userData.cartData;
+        if (!userData) {
+            return res.json({ success: false, message: "User not found." });
+        }
+        let cartData = userData.cartData;
 
         cartData[itemId][variant] = quantity;
 
@@ -41,20 +48,20 @@ const updateUserCart = async (req, res) => {
 
         res.json({ success: true, message: "Cart Updated!" });
 
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
     }
 }
 // Get User Cart
-const getUserCart = async (req, res) => {
-    try{
-        const {userId} = req.body;
+const getUserCart: RequestHandler = async (req, res) => {
+    try {
+        const { userId } = req.body;
         const userData = await userModel.findById(userId);
 
-        res.json({success: true, cartData: userData.cartData});
+        res.json({ success: true, cartData: userData?.cartData });
 
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
     }

@@ -3,7 +3,7 @@
 // ([{size:'S',stock:50}, ...]). Run once, manually, before/at the deploy
 // that ships the new productModel schema:
 //
-//   node scripts/migrateSizes.js
+//   npx tsx scripts/migrateSizes.ts
 //
 // Safe to re-run: products whose sizes are already in the new shape are
 // left untouched.
@@ -12,8 +12,8 @@ import mongoose from 'mongoose';
 
 const PLACEHOLDER_STOCK = 50;
 
-const run = async () => {
-    await mongoose.connect(process.env.MONGODB_URI);
+const run = async (): Promise<void> => {
+    await mongoose.connect(process.env.MONGODB_URI as string);
     const collection = mongoose.connection.collection('products');
 
     const cursor = collection.find({});
@@ -26,7 +26,7 @@ const run = async () => {
         const alreadyMigrated = sizes.length === 0 || (typeof sizes[0] === 'object' && sizes[0] !== null && 'size' in sizes[0]);
         if (alreadyMigrated) continue;
 
-        const newSizes = sizes.map((s) => ({ size: String(s), stock: PLACEHOLDER_STOCK }));
+        const newSizes = sizes.map((s: unknown) => ({ size: String(s), stock: PLACEHOLDER_STOCK }));
         await collection.updateOne({ _id: doc._id }, { $set: { sizes: newSizes } });
         migrated++;
     }

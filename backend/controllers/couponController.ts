@@ -1,8 +1,9 @@
+import type { RequestHandler } from "express";
 import couponModel from "../models/couponModel.js";
 import { applyCoupon } from "../utils/pricing.js";
 
 // Add Coupon (admin)
-const createCoupon = async (req, res) => {
+const createCoupon: RequestHandler = async (req, res) => {
     try {
         const { code, type, value, minOrderAmount, maxUses, perUserLimit, expiresAt } = req.body;
         if (!code || !type || value === undefined) {
@@ -23,24 +24,24 @@ const createCoupon = async (req, res) => {
         });
         await coupon.save();
         res.json({ success: true, message: "Coupon created.", coupon });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Error creating coupon: " + error.message });
     }
 };
 
 // List Coupons (admin)
-const listCoupons = async (req, res) => {
+const listCoupons: RequestHandler = async (req, res) => {
     try {
         const coupons = await couponModel.find({}).sort({ createdAt: -1 });
         res.json({ success: true, coupons });
-    } catch (error) {
+    } catch (error: any) {
         res.json({ success: false, message: "Error listing coupons: " + error.message });
     }
 };
 
 // Update Coupon (admin)
-const updateCoupon = async (req, res) => {
+const updateCoupon: RequestHandler = async (req, res) => {
     try {
         const { id, type, value, minOrderAmount, maxUses, perUserLimit, expiresAt, active } = req.body;
         const coupon = await couponModel.findById(id);
@@ -56,28 +57,28 @@ const updateCoupon = async (req, res) => {
 
         await coupon.save();
         res.json({ success: true, message: "Coupon updated.", coupon });
-    } catch (error) {
+    } catch (error: any) {
         res.json({ success: false, message: "Error updating coupon: " + error.message });
     }
 };
 
 // Delete Coupon (admin)
-const deleteCoupon = async (req, res) => {
+const deleteCoupon: RequestHandler = async (req, res) => {
     try {
         await couponModel.findByIdAndDelete(req.body.id);
         res.json({ success: true, message: "Coupon deleted." });
-    } catch (error) {
+    } catch (error: any) {
         res.json({ success: false, message: "Error deleting coupon: " + error.message });
     }
 };
 
 // Validate Coupon (customer, at checkout) — preview only, never increments usedCount
-const validateCoupon = async (req, res) => {
+const validateCoupon: RequestHandler = async (req, res) => {
     try {
         const { code, itemsAmount, userId } = req.body;
         const { discount, coupon } = await applyCoupon(code, userId, Number(itemsAmount));
         res.json({ success: true, discount, code: coupon?.code });
-    } catch (error) {
+    } catch (error: any) {
         res.json({ success: false, message: error.message });
     }
 };

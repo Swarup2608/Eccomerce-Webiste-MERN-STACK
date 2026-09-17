@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import type { RequestHandler } from "express";
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 
@@ -9,10 +10,10 @@ const REVENUE_MATCH = {
     $or: [{ payment: true }, { paymentMethod: "COD" }],
 };
 
-const daysAgo = (days) => Date.now() - Number(days) * 24 * 60 * 60 * 1000;
+const daysAgo = (days: number): number => Date.now() - Number(days) * 24 * 60 * 60 * 1000;
 
 // Summary cards: revenue, order count, AOV, new customers — all for the period.
-const summary = async (req, res) => {
+const summary: RequestHandler = async (req, res) => {
     try {
         const days = Number(req.query.days) || 30;
         const since = daysAgo(days);
@@ -30,14 +31,14 @@ const summary = async (req, res) => {
         const newCustomers = await userModel.countDocuments({ _id: { $gte: sinceObjectId } });
 
         res.json({ success: true, revenue, orderCount, aov, newCustomers, days });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
 // Daily revenue + order count for the period, for the chart.
-const revenueOverTime = async (req, res) => {
+const revenueOverTime: RequestHandler = async (req, res) => {
     try {
         const days = Number(req.query.days) || 30;
         const since = daysAgo(days);
@@ -55,28 +56,28 @@ const revenueOverTime = async (req, res) => {
         ]);
 
         res.json({ success: true, series: rows.map((r) => ({ date: r._id, revenue: r.revenue, orders: r.orders })) });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
 // Count of orders per status (all statuses, unfiltered by revenue eligibility).
-const ordersByStatus = async (req, res) => {
+const ordersByStatus: RequestHandler = async (req, res) => {
     try {
         const rows = await orderModel.aggregate([
             { $group: { _id: "$status", count: { $sum: 1 } } },
             { $sort: { count: -1 } },
         ]);
         res.json({ success: true, breakdown: rows.map((r) => ({ status: r._id, count: r.count })) });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
 // Best-selling products by quantity, within the period.
-const topProducts = async (req, res) => {
+const topProducts: RequestHandler = async (req, res) => {
     try {
         const days = Number(req.query.days) || 30;
         const limit = Math.min(20, Number(req.query.limit) || 5);
@@ -100,7 +101,7 @@ const topProducts = async (req, res) => {
             success: true,
             products: rows.map((r) => ({ productId: r._id.productId, name: r._id.name, quantity: r.quantity, revenue: r.revenue })),
         });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }

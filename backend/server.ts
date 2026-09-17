@@ -15,7 +15,7 @@ import analyticsRouter from './routes/analyticsRoutes.js';
 
 //App config
 const app = express();
-const port  = process.env.PORT || 4000;
+const port = process.env.PORT || 4000;
 
 // Connect to Database
 connectDB();
@@ -75,8 +75,8 @@ app.use('/api/category', categoryRouter);
 app.use('/api/coupon', couponRouter);
 app.use('/api/analytics', analyticsRouter);
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send("API WORKING");
 })
 
-app.listen(port,()=>console.log("Server started on PORT : "+port));
+app.listen(port, () => console.log("Server started on PORT : " + port));

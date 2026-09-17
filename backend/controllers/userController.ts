@@ -1,16 +1,17 @@
 import validator from 'validator';
 import bcrypt from 'bcrypt';
+import JWT from 'jsonwebtoken';
+import type { RequestHandler } from "express";
 import userModel from "../models/userModel.js";
 import adminModel from "../models/adminModel.js";
-import JWT from 'jsonwebtoken';
 
 // CREATE TOKEN
-const createToken = (id) => {
-    return JWT.sign({ id }, process.env.JWT_SECRET_KEY);
+const createToken = (id: unknown): string => {
+    return JWT.sign({ id }, process.env.JWT_SECRET_KEY as string);
 }
 
 // Route for user Login
-const loginUser = async (req, res) => {
+const loginUser: RequestHandler = async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -28,20 +29,20 @@ const loginUser = async (req, res) => {
         if (user.isBlocked) {
             return res.json({ success: false, message: "This account has been suspended. Contact support for help." });
         }
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password as string);
         if (isMatch) {
             const token = createToken(user._id);
             return res.json({ success: true, token });
         }
         return res.json({ success: false, message: "Invalid Credentials!" });
-    } catch (err) {
+    } catch (err: any) {
         console.log("Error logging user : " + err);
         res.json({ success: false, message: err.message });
     }
 }
 
 // Route for user Registeration
-const registerUser = async (req, res) => {
+const registerUser: RequestHandler = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
@@ -57,7 +58,7 @@ const registerUser = async (req, res) => {
         if (password.length < 8) {
             return res.json({ success: false, message: "Enter a strong Password!" })
         }
-        //Hashing Password 
+        //Hashing Password
         const salt = await bcrypt.genSalt(10);
         const HashedPassword = await bcrypt.hash(password, salt);
 
@@ -73,28 +74,28 @@ const registerUser = async (req, res) => {
 
         res.json({ success: true, token });
 
-    } catch (err) {
+    } catch (err: any) {
         console.log("Error creating user : " + err);
         res.json({ success: false, message: err.message });
     }
 }
 
 // Route for Admin Login
-const adminLogin = async (req, res) => {
+const adminLogin: RequestHandler = async (req, res) => {
 
     try {
-        const {email,password} = req.body;
+        const { email, password } = req.body;
         const admin = await adminModel.findOne({ email });
         if (!admin) {
-            return res.json({success:false,message:"Invalid Credentials!"});
+            return res.json({ success: false, message: "Invalid Credentials!" });
         }
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
-            return res.json({success:false,message:"Invalid Credentials!"});
+            return res.json({ success: false, message: "Invalid Credentials!" });
         }
-        const token = JWT.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET_KEY, { expiresIn: '12h' });
-        return res.json({success:true,token});
-    } catch (error) {
+        const token = JWT.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET_KEY as string, { expiresIn: '12h' });
+        return res.json({ success: true, token });
+    } catch (error: any) {
 
         console.log("Error Logging admin : " + error);
         res.json({ success: false, message: error.message });

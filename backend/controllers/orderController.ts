@@ -1,29 +1,30 @@
 import crypto from 'crypto';
 import mongoose from 'mongoose';
+import Stripe from 'stripe';
+import Razorpay from 'razorpay';
+import type { RequestHandler } from "express";
 import orderModel, { ORDER_STATUSES } from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import productModel from "../models/productModel.js";
 import couponModel from "../models/couponModel.js";
-import Stripe from 'stripe'
-import razorpay from 'razorpay'
-import { priceCartServerSide, applyCoupon, decrementStock, rollbackStock } from '../utils/pricing.js';
+import { priceCartServerSide, applyCoupon, decrementStock, rollbackStock, PricedLine } from '../utils/pricing.js';
 
 // Global Variables
 const currency = "inr"
 const delivery_charges = 10
 
 // GATEWAY
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const razorpayInstance = new razorpay({
-    key_id : process.env.RAZORPAY_KEY_ID,
-    key_secret : process.env.RAZORPAY_SECRET_KEY
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID as string,
+    key_secret: process.env.RAZORPAY_SECRET_KEY as string
 });
 
 // Confirms every requested item still has enough stock right now — a fast
 // pre-flight check before sending the buyer to a payment provider. The
 // atomic decrement (the real source of truth) only happens on verified
 // payment success, so this is advisory, not a reservation.
-const preflightStockCheck = async (priced) => {
+const preflightStockCheck = async (priced: PricedLine[]): Promise<void> => {
     for (const it of priced) {
         const product = await productModel.findById(it.productId);
         const variantEntry = product?.variants.find((v) => v.value === it.variant);
@@ -34,7 +35,7 @@ const preflightStockCheck = async (priced) => {
 };
 
 // Placing Orders on COD — confirmed immediately, so stock decrements now.
-const placeOrder = async (req, res) => {
+const placeOrder: RequestHandler = async (req, res) => {
     try {
         const { userId, items, address, couponCode } = req.body;
 
@@ -51,7 +52,7 @@ const placeOrder = async (req, res) => {
             deliveryFee: delivery_charges,
             amount: itemsAmount - discount + delivery_charges,
             address,
-            paymentMethod: "COD",
+            paymentMethod: "COD" as const,
             payment: false,
             date: Date.now()
         }
@@ -68,7 +69,7 @@ const placeOrder = async (req, res) => {
         await userModel.findByIdAndUpdate(userId, { cartData: {} })
 
         res.json({ success: true, message: "Order Placed Successfully!" })
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
@@ -76,7 +77,7 @@ const placeOrder = async (req, res) => {
 
 // Placing Orders on Stripe — stock is NOT decremented here, only checked;
 // the real decrement happens in verifyStripe on confirmed payment.
-const placeOrderStripe = async (req, res) => {
+const placeOrderStripe: RequestHandler = async (req, res) => {
     try {
         const { userId, items, address, couponCode } = req.body;
         const { origin } = req.headers;
@@ -95,7 +96,7 @@ const placeOrderStripe = async (req, res) => {
             deliveryFee: delivery_charges,
             amount,
             address,
-            paymentMethod: "Stripe",
+            paymentMethod: "Stripe" as const,
             payment: false,
             date: Date.now()
         }
@@ -148,7 +149,7 @@ const placeOrderStripe = async (req, res) => {
 
         res.json({ success: true, url: session.url });
 
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
@@ -156,7 +157,7 @@ const placeOrderStripe = async (req, res) => {
 }
 
 // Verify Stripe — stock decrements HERE, on verified success only.
-const verifyStripe = async (req, res) => {
+const verifyStripe: RequestHandler = async (req, res) => {
     const { orderId, success, userId } = req.body;
     try {
         const order = await orderModel.findById(orderId);
@@ -183,12 +184,12 @@ const verifyStripe = async (req, res) => {
                 if (order.paymentRef.gatewaySessionId) {
                     const session = await stripe.checkout.sessions.retrieve(order.paymentRef.gatewaySessionId);
                     if (session.payment_intent) {
-                        await stripe.refunds.create({ payment_intent: session.payment_intent });
+                        await stripe.refunds.create({ payment_intent: session.payment_intent as string });
                         order.status = "Refunded";
                         await order.save();
                     }
                 }
-            } catch (refundError) {
+            } catch (refundError: any) {
                 console.log(`Auto-refund failed for order ${orderId}: ` + refundError.message);
             }
             return res.json({
@@ -208,7 +209,7 @@ const verifyStripe = async (req, res) => {
         await userModel.findByIdAndUpdate(userId, { cartData: {} })
         res.json({ success: true, message: "Order Placed" });
     }
-    catch (error) {
+    catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
@@ -216,7 +217,7 @@ const verifyStripe = async (req, res) => {
 
 // Placing Orders on Razorpay — stock is NOT decremented here, only checked;
 // the real decrement happens in verifyRazorPayment on confirmed payment.
-const placeOrderRazorPay = async (req, res) => {
+const placeOrderRazorPay: RequestHandler = async (req, res) => {
     try {
         const { userId, items, address, couponCode } = req.body;
 
@@ -234,7 +235,7 @@ const placeOrderRazorPay = async (req, res) => {
             deliveryFee: delivery_charges,
             amount,
             address,
-            paymentMethod: "RazorPay",
+            paymentMethod: "RazorPay" as const,
             payment: false,
             date: Date.now()
         }
@@ -245,7 +246,7 @@ const placeOrderRazorPay = async (req, res) => {
             currency: currency.toUpperCase(),
             receipt: newOrder._id.toString()
         }
-        razorpayInstance.orders.create(options, async (error, order) => {
+        razorpayInstance.orders.create(options, async (error: any, order: any) => {
             if (error) {
                 console.log(error)
                 return res.json({ success: false, message: error.message || "Error creating Razorpay order." })
@@ -255,16 +256,16 @@ const placeOrderRazorPay = async (req, res) => {
             res.json({ success: true, order })
         })
 
-    } catch (error) {
+    } catch (error: any) {
 
         console.log(error);
         res.json({ success: false, message: error.message })
     }
 }
 
-const verifyRazorPayment = async (req,res) => {
+const verifyRazorPayment: RequestHandler = async (req, res) => {
     try {
-        const {userId,razorpay_order_id,razorpay_payment_id,razorpay_signature} = req.body;
+        const { userId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
         const order = await orderModel.findOne({ "paymentRef.gatewayOrderId": razorpay_order_id });
         if (!order) {
@@ -275,17 +276,17 @@ const verifyRazorPayment = async (req,res) => {
         }
 
         const expectedSignature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
+            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY as string)
             .update(razorpay_order_id + '|' + razorpay_payment_id)
             .digest('hex');
         if (expectedSignature !== razorpay_signature) {
             return res.json({ success: false, message: "Payment verification failed." });
         }
 
-        const orderInfo  = await razorpayInstance.orders.fetch(razorpay_order_id);
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
         if (orderInfo.status !== "paid") {
             await orderModel.findByIdAndDelete(order._id)
-            return res.json({success:false,message:"Payment Failed! Try Again!"});
+            return res.json({ success: false, message: "Payment Failed! Try Again!" });
         }
 
         try {
@@ -296,10 +297,10 @@ const verifyRazorPayment = async (req,res) => {
             order.paymentRef.gatewayPaymentId = razorpay_payment_id;
             await order.save();
             try {
-                await razorpayInstance.payments.refund(razorpay_payment_id);
+                await razorpayInstance.payments.refund(razorpay_payment_id, {});
                 order.status = "Refunded";
                 await order.save();
-            } catch (refundError) {
+            } catch (refundError: any) {
                 console.log(`Auto-refund failed for order ${order._id}: ` + refundError.message);
             }
             return res.json({
@@ -317,9 +318,9 @@ const verifyRazorPayment = async (req,res) => {
         order.status = "Order Placed";
         order.paymentRef.gatewayPaymentId = razorpay_payment_id;
         await order.save();
-        await userModel.findByIdAndUpdate(userId,{cartData:{}})
-        res.json({success:true,message:"Order Placed!"});
-    } catch (error) {
+        await userModel.findByIdAndUpdate(userId, { cartData: {} })
+        res.json({ success: true, message: "Order Placed!" });
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
 
@@ -328,11 +329,11 @@ const verifyRazorPayment = async (req,res) => {
 
 // All orders Admin Pannel — paginated, filterable, searchable.
 // No params ⇒ page 1 / limit 20, so existing callers keep working.
-const allOrders = async (req, res) => {
+const allOrders: RequestHandler = async (req, res) => {
     try {
         const { page = 1, limit = 20, status, paymentMethod, search, dateFrom, dateTo } = req.body;
 
-        const filter = {};
+        const filter: Record<string, any> = {};
         if (status) filter.status = status;
         if (paymentMethod) filter.paymentMethod = paymentMethod;
         if (dateFrom || dateTo) {
@@ -342,7 +343,7 @@ const allOrders = async (req, res) => {
         }
         if (search) {
             const re = new RegExp(search.trim(), 'i');
-            const orConditions = [
+            const orConditions: Record<string, any>[] = [
                 { 'address.firstName': re },
                 { 'address.lastName': re },
                 { 'address.email': re },
@@ -363,14 +364,14 @@ const allOrders = async (req, res) => {
         ]);
 
         res.json({ success: true, orders, total, page: pageNum, pages: Math.ceil(total / limitNum) || 1 })
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
     }
 }
 
 // Bulk status update (admin) — applies one status to many orders at once.
-const bulkUpdateStatus = async (req, res) => {
+const bulkUpdateStatus: RequestHandler = async (req, res) => {
     try {
         const { orderIds, status } = req.body;
         if (!Array.isArray(orderIds) || orderIds.length === 0) {
@@ -381,7 +382,7 @@ const bulkUpdateStatus = async (req, res) => {
         }
         const result = await orderModel.updateMany({ _id: { $in: orderIds } }, { status });
         res.json({ success: true, message: `Updated ${result.modifiedCount} order(s).` });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
@@ -389,7 +390,7 @@ const bulkUpdateStatus = async (req, res) => {
 
 // Refund an order (admin) — only paid, non-COD orders not already refunded.
 // Restocks the items only if the order hadn't yet reached "Delivered".
-const refundOrder = async (req, res) => {
+const refundOrder: RequestHandler = async (req, res) => {
     try {
         const { orderId } = req.body;
         const order = await orderModel.findById(orderId);
@@ -402,10 +403,10 @@ const refundOrder = async (req, res) => {
             if (!order.paymentRef.gatewaySessionId) return res.json({ success: false, message: "No Stripe session on file for this order." });
             const session = await stripe.checkout.sessions.retrieve(order.paymentRef.gatewaySessionId);
             if (!session.payment_intent) return res.json({ success: false, message: "No payment intent found for this order." });
-            await stripe.refunds.create({ payment_intent: session.payment_intent });
+            await stripe.refunds.create({ payment_intent: session.payment_intent as string });
         } else if (order.paymentMethod === "RazorPay") {
             if (!order.paymentRef.gatewayPaymentId) return res.json({ success: false, message: "No Razorpay payment on file for this order." });
-            await razorpayInstance.payments.refund(order.paymentRef.gatewayPaymentId);
+            await razorpayInstance.payments.refund(order.paymentRef.gatewayPaymentId, {});
         }
 
         if (order.status !== "Delivered") {
@@ -415,32 +416,32 @@ const refundOrder = async (req, res) => {
         order.status = "Refunded";
         await order.save();
         res.json({ success: true, message: "Order refunded." });
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: "Refund failed: " + error.message });
     }
 }
 
 // Get User Order Data
-const userOrders = async (req, res) => {
+const userOrders: RequestHandler = async (req, res) => {
     try {
         const { userId } = req.body;
         const orders = await orderModel.find({ userId })
         res.json({ success: true, orders })
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
     }
 }
 
 //Update Order Status only from Admin Pannel
-const updateOrderStatus = async (req, res) => {
+const updateOrderStatus: RequestHandler = async (req, res) => {
     try {
         const { orderId, status } = req.body;
         await orderModel.findByIdAndUpdate(orderId, { status }, { runValidators: true });
         res.json({ success: true, message: "Order Status Updated!" })
 
-    } catch (error) {
+    } catch (error: any) {
         console.log(error);
         res.json({ success: false, message: error.message })
 

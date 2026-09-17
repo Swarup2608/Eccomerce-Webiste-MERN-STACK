@@ -2,7 +2,7 @@
 // per-category "variants" concept, so non-clothing categories can filter
 // by color/material/etc instead of a hardcoded size list.
 //
-//   node scripts/migrateVariants.js
+//   npx tsx scripts/migrateVariants.ts
 //
 // Safe to re-run: anything already in the new shape is left untouched.
 //   1. categories.subCategories: ['Topwear', ...] -> [{name, filterKey,
@@ -21,8 +21,8 @@ import { DEFAULT_CATEGORIES, slugify } from '../config/bootstrapCategories.js';
 
 const SIZE_FILTER = { filterKey: 'size', filterLabel: 'Size' };
 
-const run = async () => {
-    await mongoose.connect(process.env.MONGODB_URI);
+const run = async (): Promise<void> => {
+    await mongoose.connect(process.env.MONGODB_URI as string);
     const categories = mongoose.connection.collection('categories');
     const products = mongoose.connection.collection('products');
     const orders = mongoose.connection.collection('orders');
@@ -33,7 +33,7 @@ const run = async () => {
         const subCategories = doc.subCategories || [];
         if (subCategories.length > 0 && typeof subCategories[0] === 'object') continue;
 
-        const newSubCategories = subCategories.map((name) => ({
+        const newSubCategories = subCategories.map((name: string) => ({
             name,
             ...SIZE_FILTER,
             filterOptions: ['S', 'M', 'L', 'XL', 'XXL']
@@ -46,7 +46,7 @@ const run = async () => {
     // 2. Seed Accessories if this DB predates it.
     const accessories = DEFAULT_CATEGORIES.find((c) => c.name === 'Accessories');
     const existing = await categories.findOne({ name: 'Accessories' });
-    if (!existing) {
+    if (!existing && accessories) {
         await categories.insertOne({ ...accessories, slug: slugify(accessories.name) });
         console.log('Inserted the "Accessories" category (Belts, Bags, Jewellery, Watches).');
     }
@@ -56,7 +56,7 @@ const run = async () => {
     for await (const doc of products.find({})) {
         if (doc.variants) continue;
         const sizes = doc.sizes || [];
-        const variants = sizes.map((s) => ({ value: s.size, stock: s.stock }));
+        const variants = sizes.map((s: { size: string; stock: number }) => ({ value: s.size, stock: s.stock }));
         await products.updateOne(
             { _id: doc._id },
             { $set: { variants, ...SIZE_FILTER }, $unset: { sizes: "" } }
@@ -68,7 +68,7 @@ const run = async () => {
     // 4. Orders: items[].size -> items[].variant.
     let ordersMigrated = 0;
     for await (const doc of orders.find({ 'items.size': { $exists: true } })) {
-        const items = (doc.items || []).map((it) => {
+        const items = (doc.items || []).map((it: any) => {
             if (it.variant) return it;
             const { size, ...rest } = it;
             return { ...rest, variant: size, variantLabel: 'Size' };
