@@ -58,6 +58,7 @@ app.use(
         allowedHeaders: [
             'Content-Type',
             'Authorization',
+            'token',
         ],
 
         maxAge: 86400,
