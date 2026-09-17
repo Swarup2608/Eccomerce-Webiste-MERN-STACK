@@ -3,6 +3,26 @@ import productModel from "../models/productModel.js";
 
 const slugify = (name) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+// Normalizes admin-submitted sub-categories into the stored shape. filterKey
+// is always server-derived from filterLabel (never trusted from the
+// client) so two sub-categories that mean the same filter (e.g. "Material"
+// on Belts and on Jewellery) always share one key, and admin typos in
+// casing/spacing can't fork it into two keys.
+const normalizeSubCategories = (subCategories) => {
+    if (!Array.isArray(subCategories)) return [];
+    return subCategories.map((sc, index) => {
+        const name = String(sc?.name ?? "").trim();
+        const filterLabel = String(sc?.filterLabel ?? "").trim();
+        const filterOptions = Array.isArray(sc?.filterOptions)
+            ? sc.filterOptions.map((o) => String(o).trim()).filter(Boolean)
+            : [];
+        if (!name) throw new Error(`Sub-category #${index + 1} needs a name.`);
+        if (!filterLabel) throw new Error(`Sub-category "${name}" needs a filter label (e.g. Size, Color, Material).`);
+        if (filterOptions.length === 0) throw new Error(`Sub-category "${name}" needs at least one filter option.`);
+        return { name, filterLabel, filterKey: slugify(filterLabel), filterOptions };
+    });
+};
+
 // Add Category (admin)
 const addCategory = async (req, res) => {
     try {
@@ -18,7 +38,7 @@ const addCategory = async (req, res) => {
         const category = new categoryModel({
             name: name.trim(),
             slug,
-            subCategories: Array.isArray(subCategories) ? subCategories.filter(Boolean) : [],
+            subCategories: normalizeSubCategories(subCategories),
             sortOrder: Number(sortOrder) || 0
         });
         await category.save();
@@ -46,7 +66,7 @@ const updateCategory = async (req, res) => {
             category.name = name.trim();
             category.slug = slug;
         }
-        if (Array.isArray(subCategories)) category.subCategories = subCategories.filter(Boolean);
+        if (subCategories !== undefined) category.subCategories = normalizeSubCategories(subCategories);
         if (sortOrder !== undefined) category.sortOrder = Number(sortOrder) || 0;
         if (active !== undefined) category.active = !!active;
         await category.save();

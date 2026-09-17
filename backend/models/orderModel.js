@@ -3,7 +3,11 @@ import mongoose from "mongoose";
 const orderItemSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'product', required: true },
     name: { type: String, required: true },
-    size: { type: String, required: true },
+    variant: { type: String, required: true },
+    // Snapshot of the product's filter label at order time (e.g. "Size",
+    // "Material") so order history reads correctly even if the product's
+    // category filter definition changes later.
+    variantLabel: { type: String, required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true } // server-side snapshot at order time, never client-trusted
 }, { _id: false });

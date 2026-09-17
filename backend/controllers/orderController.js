@@ -26,9 +26,9 @@ const razorpayInstance = new razorpay({
 const preflightStockCheck = async (priced) => {
     for (const it of priced) {
         const product = await productModel.findById(it.productId);
-        const sizeEntry = product?.sizes.find((s) => s.size === it.size);
-        if (!sizeEntry || sizeEntry.stock < it.quantity) {
-            throw new Error(`${it.name} (${it.size}) doesn't have enough stock right now.`);
+        const variantEntry = product?.variants.find((v) => v.value === it.variant);
+        if (!variantEntry || variantEntry.stock < it.quantity) {
+            throw new Error(`${it.name} (${it.variant}) doesn't have enough stock right now.`);
         }
     }
 };

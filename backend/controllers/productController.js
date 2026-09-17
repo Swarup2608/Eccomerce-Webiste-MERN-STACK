@@ -2,26 +2,45 @@ import { v2 as cloudinary } from "cloudinary";
 import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
 
-const parseSizes = (raw) => {
+const parseVariants = (raw) => {
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) throw new Error("Sizes must be a list.");
-    return parsed.map((s) => {
-        // Accept either the new {size,stock} shape or a bare size string
+    if (!Array.isArray(parsed)) throw new Error("Variants must be a list.");
+    if (parsed.length === 0) throw new Error("Add at least one variant.");
+    return parsed.map((v) => {
+        // Accept either the new {value,stock} shape or a bare string
         // (defaults to 0 stock) so older/simpler admin clients don't hard-fail.
-        if (typeof s === "string") return { size: s, stock: 0 };
-        const size = String(s.size ?? "").trim();
-        const stock = Number(s.stock);
-        if (!size) throw new Error("Every size needs a label.");
-        if (!Number.isFinite(stock) || stock < 0) throw new Error(`Invalid stock for size ${size}.`);
-        return { size, stock };
+        if (typeof v === "string") return { value: v, stock: 0 };
+        const value = String(v.value ?? "").trim();
+        const stock = Number(v.stock);
+        if (!value) throw new Error("Every variant needs a value.");
+        if (!Number.isFinite(stock) || stock < 0) throw new Error(`Invalid stock for ${value}.`);
+        return { value, stock };
     });
 };
 
-const validateCategory = async (category, subCategory) => {
+// Looks up the category and its sub-category's filter definition, and
+// returns it so the caller can denormalize filterKey/filterLabel onto the
+// product — server-derived, never trusted from the client.
+const resolveSubCategory = async (category, subCategory) => {
     const categoryDoc = await categoryModel.findOne({ name: category });
     if (!categoryDoc) throw new Error(`Unknown category: ${category}`);
-    if (subCategory && !categoryDoc.subCategories.includes(subCategory)) {
+    const subCategoryDef = categoryDoc.subCategories.find((sc) => sc.name === subCategory);
+    if (!subCategoryDef) {
         throw new Error(`"${subCategory}" is not a sub-category of ${category}.`);
+    }
+    return subCategoryDef;
+};
+
+// Enforces that every variant value is actually one of the sub-category's
+// declared filter options, so the storefront's filters can never drift out
+// of sync with the products they're meant to describe.
+const validateVariantsAgainstFilter = (variants, subCategoryDef) => {
+    const allowed = new Set(subCategoryDef.filterOptions);
+    const invalid = variants.filter((v) => !allowed.has(v.value));
+    if (invalid.length) {
+        throw new Error(
+            `${invalid.map((v) => v.value).join(', ')} ${invalid.length > 1 ? 'are' : 'is'} not a valid ${subCategoryDef.filterLabel} for ${subCategoryDef.name}. Allowed: ${subCategoryDef.filterOptions.join(', ')}.`
+        );
     }
 };
 
@@ -60,10 +79,11 @@ const destroyImages = async (urls) => {
 // Add Product
 const addProduct = async (req, res) => {
     try {
-        const { name, description, price, category, subCategory, sizes, bestSeller } = req.body;
+        const { name, description, price, category, subCategory, variants, bestSeller } = req.body;
 
-        await validateCategory(category, subCategory);
-        const parsedSizes = parseSizes(sizes);
+        const subCategoryDef = await resolveSubCategory(category, subCategory);
+        const parsedVariants = parseVariants(variants);
+        validateVariantsAgainstFilter(parsedVariants, subCategoryDef);
         const imagesUrl = await extractImageUrls(req.files);
 
         const productData = {
@@ -73,7 +93,9 @@ const addProduct = async (req, res) => {
             "image": imagesUrl,
             "category": category,
             "subCategory": subCategory,
-            "sizes": parsedSizes,
+            "filterKey": subCategoryDef.filterKey,
+            "filterLabel": subCategoryDef.filterLabel,
+            "variants": parsedVariants,
             "bestSeller": bestSeller === "true" ? true : false,
             "date": Date.now()
         }
@@ -92,14 +114,15 @@ const addProduct = async (req, res) => {
 // slots that receive a new file; unspecified slots keep their existing URL.
 const updateProduct = async (req, res) => {
     try {
-        const { id, name, description, price, category, subCategory, sizes, bestSeller } = req.body;
+        const { id, name, description, price, category, subCategory, variants, bestSeller } = req.body;
         const product = await productModel.findById(id);
         if (!product) {
             return res.json({ success: false, message: "Product not found." });
         }
 
-        await validateCategory(category, subCategory);
-        const parsedSizes = parseSizes(sizes);
+        const subCategoryDef = await resolveSubCategory(category, subCategory);
+        const parsedVariants = parseVariants(variants);
+        validateVariantsAgainstFilter(parsedVariants, subCategoryDef);
 
         const files = req.files;
         const newImages = [1, 2, 3, 4].map((n) => files?.[`image${n}`] && files[`image${n}`][0]);
@@ -120,7 +143,9 @@ const updateProduct = async (req, res) => {
         product.price = Number(price);
         product.category = category;
         product.subCategory = subCategory;
-        product.sizes = parsedSizes;
+        product.filterKey = subCategoryDef.filterKey;
+        product.filterLabel = subCategoryDef.filterLabel;
+        product.variants = parsedVariants;
         product.bestSeller = bestSeller === "true" ? true : false;
         product.image = finalImages.filter(Boolean);
 
@@ -149,7 +174,7 @@ const listProduct = async (req, res) => {
         if (category) filter.category = category;
         if (subCategory) filter.subCategory = subCategory;
         if (search) filter.name = new RegExp(String(search).trim(), 'i');
-        if (inStock === 'true') filter.sizes = { $elemMatch: { stock: { $gt: 0 } } };
+        if (inStock === 'true') filter.variants = { $elemMatch: { stock: { $gt: 0 } } };
 
         const sort = {};
         if (sortBy) sort[sortBy] = sortDir === 'desc' ? -1 : 1;

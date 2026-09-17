@@ -5,7 +5,7 @@ import orderModel from "../models/orderModel.js";
 
 // Re-derives price/name/availability for every cart line from the
 // authoritative product record — never trusts client-sent price or name.
-// `items` is [{productId, size, quantity}].
+// `items` is [{productId, variant, quantity}].
 const priceCartServerSide = async (items) => {
     if (!Array.isArray(items) || items.length === 0) {
         throw new Error("Cart is empty.");
@@ -19,14 +19,15 @@ const priceCartServerSide = async (items) => {
         }
         const product = await productModel.findById(it.productId);
         if (!product) throw new Error(`Product not found: ${it.productId}`);
-        const sizeEntry = product.sizes.find((s) => s.size === it.size);
-        if (!sizeEntry) throw new Error(`Size ${it.size} is not available for ${product.name}.`);
+        const variantEntry = product.variants.find((v) => v.value === it.variant);
+        if (!variantEntry) throw new Error(`${it.variant} is not available for ${product.name}.`);
 
         itemsAmount += product.price * quantity;
         priced.push({
             productId: product._id,
             name: product.name,
-            size: it.size,
+            variant: it.variant,
+            variantLabel: product.filterLabel,
             quantity,
             price: product.price
         });
@@ -71,12 +72,12 @@ const decrementStock = async (items) => {
         await session.withTransaction(async () => {
             for (const it of items) {
                 const updated = await productModel.findOneAndUpdate(
-                    { _id: it.productId, sizes: { $elemMatch: { size: it.size, stock: { $gte: it.quantity } } } },
-                    { $inc: { "sizes.$[elem].stock": -it.quantity } },
-                    { arrayFilters: [{ "elem.size": it.size }], new: true, session }
+                    { _id: it.productId, variants: { $elemMatch: { value: it.variant, stock: { $gte: it.quantity } } } },
+                    { $inc: { "variants.$[elem].stock": -it.quantity } },
+                    { arrayFilters: [{ "elem.value": it.variant }], new: true, session }
                 );
                 if (!updated) {
-                    throw new Error(`Insufficient stock for size ${it.size}.`);
+                    throw new Error(`Insufficient stock for ${it.variant}.`);
                 }
             }
         });
@@ -92,8 +93,8 @@ const rollbackStock = async (items) => {
     for (const it of items) {
         await productModel.updateOne(
             { _id: it.productId },
-            { $inc: { "sizes.$[elem].stock": it.quantity } },
-            { arrayFilters: [{ "elem.size": it.size }] }
+            { $inc: { "variants.$[elem].stock": it.quantity } },
+            { arrayFilters: [{ "elem.value": it.variant }] }
         );
     }
 };
