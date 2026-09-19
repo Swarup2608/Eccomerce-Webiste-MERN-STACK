@@ -10,6 +10,7 @@ export default function TopProductsTable({ products, currency }: { products: Top
     return <p className="text-muted">No sales in this period yet.</p>;
   }
   return (
+    <div className="table-scroll">
     <table className="table">
       <thead>
         <tr>
@@ -28,5 +29,6 @@ export default function TopProductsTable({ products, currency }: { products: Top
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

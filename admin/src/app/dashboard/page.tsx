@@ -52,7 +52,7 @@ export default function Dashboard() {
 
       <SummaryCards data={summaryData} currency={currency} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(0,1fr)', gap: 18 }}>
+      <div className="dashboard-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(0,1fr)', gap: 18 }}>
         <div className="card" style={{ padding: 20 }}>
           <div style={{ font: '500 11px/1 Inter', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--color-neutral-500)', marginBottom: 18 }}>
             Revenue over time

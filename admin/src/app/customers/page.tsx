@@ -60,6 +60,7 @@ export default function Customers() {
         <input className="input" placeholder="Search by name or email" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 320 }} />
       </div>
 
+      <div className="table-scroll">
       <table className="table">
         <thead>
           <tr>
@@ -89,6 +90,7 @@ export default function Customers() {
           ))}
         </tbody>
       </table>
+      </div>
       {customers.length === 0 && <p className="text-muted" style={{ marginTop: 20 }}>No customers yet.</p>}
 
       {pages > 1 && (

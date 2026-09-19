@@ -26,14 +26,14 @@ export default function Sidebar() {
         </span>
         <span style={{ font: '500 15px/1 Inter' }}>Admin</span>
       </div>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <nav className="admin-nav" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className={`admin-nav-link ${pathname === n.href ? 'active' : ''}`}>
             {n.label}
           </Link>
         ))}
       </nav>
-      <button type="button" className="btn btn-secondary" onClick={() => setToken('')} style={{ marginTop: 'auto' }}>
+      <button type="button" className="btn btn-secondary admin-logout-btn" onClick={() => setToken('')} style={{ marginTop: 'auto' }}>
         Log out
       </button>
     </aside>

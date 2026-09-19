@@ -170,6 +170,7 @@ export default function AdminOrders() {
         </div>
       )}
 
+      <div className="table-scroll">
       <table className="table">
         <thead>
           <tr>
@@ -225,6 +226,7 @@ export default function AdminOrders() {
           ))}
         </tbody>
       </table>
+      </div>
       {orders.length === 0 && <p className="text-muted" style={{ marginTop: 20 }}>No orders match these filters.</p>}
 
       {pages > 1 && (

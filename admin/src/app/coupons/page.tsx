@@ -106,7 +106,7 @@ export default function Coupons() {
         <div style={{ font: '500 11px/1 Inter', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--color-neutral-500)' }}>
           {editingId ? 'Edit coupon' : 'New coupon'}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
+        <div className="form-grid-collapse" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
           <div className="field">
             <label>Code</label>
             <input className="input" value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} placeholder="WELCOME10" required disabled={!!editingId} />
@@ -129,7 +129,7 @@ export default function Coupons() {
             <input className="input" type="number" value={form.value} onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))} placeholder="10" required />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+        <div className="form-grid-collapse" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
           <div className="field">
             <label>Min order amount</label>
             <input className="input" type="number" value={form.minOrderAmount} onChange={(e) => setForm((f) => ({ ...f, minOrderAmount: e.target.value }))} placeholder="0" />
@@ -155,6 +155,7 @@ export default function Coupons() {
         </div>
       </form>
 
+      <div className="table-scroll">
       <table className="table">
         <thead>
           <tr>
@@ -191,6 +192,7 @@ export default function Coupons() {
           ))}
         </tbody>
       </table>
+      </div>
       {coupons.length === 0 && <p className="text-muted" style={{ marginTop: 20 }}>No coupons yet.</p>}
     </div>
   );

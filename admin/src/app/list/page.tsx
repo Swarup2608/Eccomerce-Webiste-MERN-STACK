@@ -91,6 +91,7 @@ export default function ListProducts() {
         </div>
       </div>
 
+      <div className="table-scroll">
       <table className="table">
         <thead>
           <tr>
@@ -139,6 +140,7 @@ export default function ListProducts() {
           ))}
         </tbody>
       </table>
+      </div>
       {list.length === 0 && <p className="text-muted" style={{ marginTop: 20 }}>No products match these filters.</p>}
 
       {pages > 1 && (

@@ -136,7 +136,7 @@ export default function Categories() {
           </p>
           <div style={{ display: 'grid', gap: 10 }}>
             {subCategories.map((sc, i) => (
-              <div key={i} className="card" style={{ padding: 14, display: 'grid', gridTemplateColumns: '1fr 1fr 1.6fr auto', gap: 10, alignItems: 'end' }}>
+              <div key={i} className="card subcat-row-grid" style={{ padding: 14, display: 'grid', gridTemplateColumns: '1fr 1fr 1.6fr auto', gap: 10, alignItems: 'end' }}>
                 <div className="field">
                   <label>Sub-category name</label>
                   <input className="input" value={sc.name} onChange={(e) => updateSubCategory(i, { name: e.target.value })} placeholder="Belts" />
@@ -174,6 +174,7 @@ export default function Categories() {
         </div>
       </form>
 
+      <div className="table-scroll">
       <table className="table">
         <thead>
           <tr>
@@ -210,6 +211,7 @@ export default function Categories() {
           ))}
         </tbody>
       </table>
+      </div>
       {categories.length === 0 && <p className="text-muted" style={{ marginTop: 20 }}>No categories yet.</p>}
     </div>
   );

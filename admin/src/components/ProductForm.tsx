@@ -171,7 +171,7 @@ export default function ProductForm({
           <label>Description</label>
           <textarea className="input" value={values.description} onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))} placeholder="Materials, construction, repair notes." required />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
+        <div className="form-grid-collapse" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
           <div className="field">
             <label>Category</label>
             <select className="input" value={values.category} onChange={(e) => onCategoryChange(e.target.value)}>
