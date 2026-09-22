@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { z } from 'zod';
 
-const envSchema = z.object({
+export const envSchema = z.object({
     PORT: z.coerce.number().nonnegative().default(5000),
 
     CLIENT_URL: z.string().url().default("http://localhost:3000"),
