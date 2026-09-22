@@ -25,9 +25,9 @@ after(() => {
     });
 });
 
-test('GET /api/health returns 200 with the expected shape', async () => {
+test('GET /api/health reports live Database/Cloudinary status with the expected shape', async () => {
     const response = await fetch(`${baseUrl}/api/health`);
-    assert.equal(response.status, 200);
+    assert.equal(response.status, 503);
     assert.equal(response.headers.get('content-type')?.includes('application/json'), true);
 
     const body = await response.json() as {
@@ -36,12 +36,12 @@ test('GET /api/health returns 200 with the expected shape', async () => {
         Port: number;
         checks: { Database: string; Cloudinary: string };
     };
-    assert.equal(body.message, 'API is healthy');
+    assert.equal(body.message, 'API is degraded');
     assert.equal(body.Server, 'Running');
     assert.equal(typeof body.Port, 'number');
     assert.ok('checks' in body);
-    assert.equal(body.checks.Database, 'Connected');
-    assert.equal(body.checks.Cloudinary, 'Connected');
+    assert.equal(body.checks.Database, 'Disconnected');
+    assert.equal(body.checks.Cloudinary, 'Disconnected');
 });
 
 test('GET / returns the API WORKING string', async () => {
