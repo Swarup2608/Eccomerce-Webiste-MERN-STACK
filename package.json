@@ -14,7 +14,7 @@
         "dev" : "concurrently -n frontend,admin, backend -c blue,magneta,green \"npm:dev:frontend\" \"npm:dev:backend\" \"npm:dev:admin\"",
         "build" : "npm run build --workspaces --if-present",
         "lint" : "npm run lint --workspaces --if-present",
-        "typecheck" : "npm run typecheck --workspaces=backend",
+        "typecheck" : "npm run typecheck --workspace --if-present",
         "test": "npm run test --workspaces --if-present"
     },
     "dependencies": {
