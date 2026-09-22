@@ -10,6 +10,7 @@ import orderRouter from './routes/orderRoutes.js';
 import categoryRouter from './routes/categoryRoutes.js';
 import couponRouter from './routes/couponRoutes.js';
 import analyticsRouter from './routes/analyticsRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const port = env.PORT;
@@ -96,5 +97,8 @@ app.use('/api/analytics', analyticsRouter);
 app.get('/', (req, res) => {
     res.send("API WORKING");
 })
+
+app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
+app.use(errorHandler);
 
 export default app;
