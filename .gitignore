@@ -1,5 +1,9 @@
 node_modules
 
+.claude
 *.env
 
 dist
+*.md
+
+!README.md
