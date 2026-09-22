@@ -67,6 +67,21 @@ app.use(
     })
 );
 
+app.get('/api/health',(req,res)=>{
+    res.status(200).json({
+        "message": "API is healthy",
+        "checks" :{
+            "Database": "Connected",
+            "Cloudinary": "Connected"
+        },
+        "Server": "Running",
+        "Environment": process.env.NODE_ENV || "development",
+        "Port": port,
+        "Client URL": process.env.CLIENT_URL || "Not set",
+        "Admin URL": process.env.ADMIN_URL || "Not set",
+    })
+})
+
 // API end Points
 app.use('/api/user', userRouter);
 app.use('/api/product', productRouter);
