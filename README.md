@@ -50,13 +50,13 @@
 
 ### Installation
 
+The repo is an npm workspaces monorepo — a single install at the root resolves `backend`, `frontend`, and `admin` together.
+
 ```bash
 git clone https://github.com/Swarup2608/Eccomerce-Webiste-MERN-STACK.git
 cd Eccomerce-Webiste-MERN-STACK
 
-cd backend  && npm install && cd ..
-cd frontend && npm install && cd ..
-cd admin    && npm install && cd ..
+npm install
 ```
 
 ### Configuration
@@ -89,16 +89,36 @@ CORS_ORIGIN=http://localhost:3000,http://localhost:3001
 
 ### Running locally
 
+Run everything at once from the root (uses `concurrently`):
+
+```bash
+npm run dev   # API + Storefront + Admin together
+```
+
+Or run each application independently:
+
 ```bash
 # Terminal 1 — API
-cd backend && npm run server      # http://localhost:4000/api
+npm run dev:backend      # http://localhost:4000/api
 
 # Terminal 2 — Storefront
-cd frontend && npm run dev        # http://localhost:3000
+npm run dev:frontend     # http://localhost:3000
 
 # Terminal 3 — Admin Dashboard
-cd admin && npm run dev           # http://localhost:3001
+npm run dev:admin        # http://localhost:3001
 ```
+
+**Root-level scripts**
+
+| Script          | Description                                    |
+| --------------- | ----------------------------------------------- |
+| `dev`           | Runs backend, frontend, and admin concurrently  |
+| `dev:backend`   | Runs the API only (`backend` workspace)         |
+| `dev:frontend`  | Runs the storefront only (`frontend` workspace) |
+| `dev:admin`     | Runs the admin dashboard only (`admin` workspace) |
+| `build`         | Builds every workspace that has a `build` script |
+| `lint`          | Lints every workspace that has a `lint` script  |
+| `typecheck`     | Type-checks the `backend` workspace             |
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:e2e8f0,100:e2e8f0&height=2&section=header"/>
 
@@ -173,6 +193,8 @@ cd admin && npm run dev           # http://localhost:3001
 
 ```
 Eccomerce-Webiste-MERN-STACK/
+│
+├── package.json             # npm workspaces root (backend, frontend, admin)
 │
 ├── backend/                # Node.js + Express API
 │   ├── config/             # mongodb, cloudinary, admin/category bootstrap
