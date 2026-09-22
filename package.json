@@ -1,22 +1,23 @@
 {
-    "name" : "eccomerce-website-mern-stack",
+    "name": "eccomerce-website-mern-stack",
     "private": true,
     "version": "1.0.0",
-    "workspaces" :[
+    "workspaces": [
         "frontend",
         "backend",
         "admin"
     ],
     "scripts": {
-        "dev:frontend" : "npm run dev --workspace=frontend",
-        "dev:admin" : "npm run dev --workspace=admin",
-        "dev:backend" : "npm run start --workspace=backend",
-        "dev" : "concurrently -n frontend,admin, backend -c blue,magneta,green \"npm:dev:frontend\" \"npm:dev:backend\" \"npm:dev:admin\"",
-        "build" : "npm run build --workspaces --if-present",
-        "lint" : "npm run lint --workspaces --if-present",
-        "typecheck" : "npm run typecheck --workspaces=backend"
+        "dev:frontend": "npm run dev --workspace=frontend",
+        "dev:admin": "npm run dev --workspace=admin",
+        "dev:backend": "npm run start --workspace=backend",
+        "dev": "concurrently -n frontend,admin, backend -c blue,magneta,green \"npm:dev:frontend\" \"npm:dev:backend\" \"npm:dev:admin\"",
+        "build": "npm run build --workspaces --if-present",
+        "lint": "npm run lint --workspaces --if-present",
+        "typecheck": "npm run typecheck --workspaces=backend"
     },
     "dependencies": {
-        "concurrently": "^10.0.5"
+        "concurrently": "^10.0.5",
+        "zod": "^4.6.5"
     }
 }

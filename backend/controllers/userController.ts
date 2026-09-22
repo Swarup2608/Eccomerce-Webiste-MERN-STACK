@@ -4,10 +4,11 @@ import JWT from 'jsonwebtoken';
 import type { RequestHandler } from "express";
 import userModel from "../models/userModel.js";
 import adminModel from "../models/adminModel.js";
+import { env } from '../config/env.js';
 
 // CREATE TOKEN
 const createToken = (id: unknown): string => {
-    return JWT.sign({ id }, process.env.JWT_SECRET_KEY as string);
+    return JWT.sign({ id }, env.JWT_SECRET_KEY);
 }
 
 // Route for user Login
@@ -93,7 +94,7 @@ const adminLogin: RequestHandler = async (req, res) => {
         if (!isMatch) {
             return res.json({ success: false, message: "Invalid Credentials!" });
         }
-        const token = JWT.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET_KEY as string, { expiresIn: '12h' });
+        const token = JWT.sign({ id: admin._id, role: admin.role }, env.JWT_SECRET_KEY, { expiresIn: '12h' });
         return res.json({ success: true, token });
     } catch (error: any) {
 

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
+import { env } from './config/env.js';
 import connectDB from './config/mongodb.js'
 import connectCloudinary from './config/cloudinary.js';
 import ensureAdminSeed from './config/bootstrapAdmin.js';
@@ -15,7 +16,7 @@ import analyticsRouter from './routes/analyticsRoutes.js';
 
 //App config
 const app = express();
-const port = process.env.PORT || 4000;
+const port = env.PORT;
 
 // Connect to Database
 connectDB();
@@ -29,8 +30,8 @@ connectCloudinary().catch((error) => {
 });
 
 const allowedOrigins = [
-    process.env.CLIENT_URL,
-    process.env.ADMIN_URL,
+    env.CLIENT_URL,
+    env.ADMIN_URL,
 ].filter(Boolean);
 
 //Middle ware
@@ -75,10 +76,10 @@ app.get('/api/health',(req,res)=>{
             "Cloudinary": "Connected"
         },
         "Server": "Running",
-        "Environment": process.env.NODE_ENV || "development",
+        "Environment": env.NODE_ENV || "development",
         "Port": port,
-        "Client URL": process.env.CLIENT_URL || "Not set",
-        "Admin URL": process.env.ADMIN_URL || "Not set",
+        "Client URL": env.CLIENT_URL || "Not set",
+        "Admin URL": env.ADMIN_URL || "Not set",
     })
 })
 
