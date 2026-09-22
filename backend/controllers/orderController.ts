@@ -8,16 +8,17 @@ import userModel from "../models/userModel.js";
 import productModel from "../models/productModel.js";
 import couponModel from "../models/couponModel.js";
 import { priceCartServerSide, applyCoupon, decrementStock, rollbackStock, PricedLine } from '../utils/pricing.js';
+import { env } from '../config/env.js';
 
 // Global Variables
 const currency = "inr"
 const delivery_charges = 10
 
 // GATEWAY
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID as string,
-    key_secret: process.env.RAZORPAY_SECRET_KEY as string
+    key_id: env.RAZORPAY_KEY_ID,
+    key_secret: env.RAZORPAY_SECRET_KEY
 });
 
 // Confirms every requested item still has enough stock right now — a fast
@@ -276,7 +277,7 @@ const verifyRazorPayment: RequestHandler = async (req, res) => {
         }
 
         const expectedSignature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY as string)
+            .createHmac('sha256', env.RAZORPAY_SECRET_KEY)
             .update(razorpay_order_id + '|' + razorpay_payment_id)
             .digest('hex');
         if (expectedSignature !== razorpay_signature) {

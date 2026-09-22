@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import type { RequestHandler } from 'express';
+import { env } from '../config/env.js';
 
 const authUser: RequestHandler = async (req, res, next) => {
 
@@ -8,7 +9,7 @@ const authUser: RequestHandler = async (req, res, next) => {
         return res.json({ success: false, message: "Not Authorized Login Again!" })
     }
     try {
-        const token_decode = jwt.verify(token, process.env.JWT_SECRET_KEY as string);
+        const token_decode = jwt.verify(token, env.JWT_SECRET_KEY);
         req.body.userId = typeof token_decode === 'string' ? token_decode : token_decode.id;
         next();
     } catch (error: any) {

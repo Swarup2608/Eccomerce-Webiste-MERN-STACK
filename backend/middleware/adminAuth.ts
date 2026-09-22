@@ -1,5 +1,6 @@
 import JWT from 'jsonwebtoken';
 import type { RequestHandler } from 'express';
+import { env } from '../config/env.js';
 
 const adminAuth: RequestHandler = async (req, res, next) => {
     try {
@@ -7,7 +8,7 @@ const adminAuth: RequestHandler = async (req, res, next) => {
         if (!token || Array.isArray(token)) {
             return res.json({ success: false, message: "Not Authorized Login Again!" });
         }
-        const token_decode = JWT.verify(token, process.env.JWT_SECRET_KEY as string);
+        const token_decode = JWT.verify(token, env.JWT_SECRET_KEY);
         if (!token_decode || typeof token_decode === 'string' || token_decode.role !== "admin") {
             return res.json({ success: false, message: "Not Authorized Login Again!" });
         }
