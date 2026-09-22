@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import mongoose from 'mongoose';
 import { env } from './config/env.js';
+import { cloudinaryStatus } from './config/cloudinary.js';
 import userRouter from './routes/userRoute.js';
 import productRouter from './routes/productRoute.js';
 import cartRouter from './routes/cartRoutes.js';
@@ -8,6 +10,7 @@ import orderRouter from './routes/orderRoutes.js';
 import categoryRouter from './routes/categoryRoutes.js';
 import couponRouter from './routes/couponRoutes.js';
 import analyticsRouter from './routes/analyticsRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const port = env.PORT;
@@ -51,12 +54,28 @@ app.use(
     })
 );
 
-app.get('/api/health',(req,res)=>{
-    res.status(200).json({
-        "message": "API is healthy",
-        "checks" :{
-            "Database": "Connected",
-            "Cloudinary": "Connected"
+const mongooseStateLabels: Record<number, string> = {
+    0: 'Disconnected',
+    1: 'Connected',
+    2: 'Connecting',
+    3: 'Disconnecting',
+};
+
+const cloudinaryStatusLabels: Record<string, string> = {
+    connected: 'Connected',
+    disconnected: 'Disconnected',
+    error: 'Error',
+};
+
+app.get('/api/health', (req, res) => {
+    const dbState = mongoose.connection.readyState;
+    const isHealthy = dbState === 1;
+
+    res.status(isHealthy ? 200 : 503).json({
+        "message": isHealthy ? "API is healthy" : "API is degraded",
+        "checks": {
+            "Database": mongooseStateLabels[dbState] ?? 'Unknown',
+            "Cloudinary": cloudinaryStatusLabels[cloudinaryStatus] ?? 'Unknown',
         },
         "Server": "Running",
         "Environment": env.NODE_ENV || "development",
@@ -78,5 +97,8 @@ app.use('/api/analytics', analyticsRouter);
 app.get('/', (req, res) => {
     res.send("API WORKING");
 })
+
+app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
+app.use(errorHandler);
 
 export default app;
