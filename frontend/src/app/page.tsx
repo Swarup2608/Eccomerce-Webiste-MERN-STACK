@@ -17,12 +17,12 @@ const PROMISES = [
 ];
 
 function CategoryCard({ label, count, mark }: { label: string; count: number; mark: string }) {
-  const { ref, onMouseMove, onMouseLeave } = useTilt();
+  const { ref, onMouseMove, onMouseLeave } = useTilt<HTMLAnchorElement>();
   return (
     <Reveal>
       <Link
         href={`/collections?category=${label}`}
-        ref={ref as any}
+        ref={ref}
         data-tilt=""
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 import type { Customer, Order } from '@/lib/types';
 
@@ -26,8 +27,8 @@ export default function CustomerDetail() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -48,8 +49,8 @@ export default function CustomerDetail() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 

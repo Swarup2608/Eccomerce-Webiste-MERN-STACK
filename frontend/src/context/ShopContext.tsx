@@ -4,6 +4,7 @@ import { createContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import type { CartItems, Category, Product } from '@/lib/types';
 
 interface ShopContextValue {
@@ -57,9 +58,9 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       try {
         await axios.post(backendURL + '/api/cart/add', { itemId, variant }, { headers: { token } });
-      } catch (error: any) {
+      } catch (error) {
         console.log(error);
-        toast.error(error.message);
+        toast.error(getErrorMessage(error));
       }
     } else {
       toast.error('Please login to add items to cart!');
@@ -84,9 +85,9 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -97,9 +98,9 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       try {
         await axios.post(backendURL + '/api/cart/update', { itemId, variant, quantity }, { headers: { token } });
-      } catch (error: any) {
+      } catch (error) {
         console.log(error);
-        toast.error(error.message);
+        toast.error(getErrorMessage(error));
       }
     } else {
       toast.error('Please login to add items to cart!');
@@ -127,9 +128,9 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -139,7 +140,7 @@ export const ShopContextProvider = ({ children }: { children: ReactNode }) => {
       if (response.data.success) {
         setCategories(response.data.categories);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
     }
   };

@@ -4,14 +4,43 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useShop } from '@/context/useShop';
 import ProductThumb from '@/components/ProductThumb';
 import { assets } from '@/lib/assets';
 import type { OrderAddress } from '@/lib/types';
 
+interface RazorpayOrder {
+  id: string;
+  amount: number;
+  currency: string;
+  receipt: string;
+}
+
+interface RazorpayPaymentResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayOptions {
+  key: string | undefined;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  receipt: string;
+  handler: (response: RazorpayPaymentResponse) => void;
+}
+
+interface RazorpayCheckout {
+  open: () => void;
+}
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (options: RazorpayOptions) => RazorpayCheckout;
   }
 }
 
@@ -74,8 +103,8 @@ export default function PlaceOrder() {
         setAppliedCoupon(null);
         toast.error(data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setApplyingCoupon(false);
     }
@@ -86,8 +115,8 @@ export default function PlaceOrder() {
     setCouponInput('');
   };
 
-  const initPay = (order: any) => {
-    const options = {
+  const initPay = (order: RazorpayOrder) => {
+    const options: RazorpayOptions = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       amount: order.amount,
       currency: order.currency,
@@ -95,7 +124,7 @@ export default function PlaceOrder() {
       description: 'Order Payment',
       order_id: order.id,
       receipt: order.receipt,
-      handler: async (response: any) => {
+      handler: async (response) => {
         try {
           const { data } = await axios.post(backendURL + '/api/order/verifyRazorPay', response, { headers: { token } });
           if (data.success) {
@@ -105,8 +134,8 @@ export default function PlaceOrder() {
           } else {
             toast.error(data.message);
           }
-        } catch (error: any) {
-          toast.error(error.message);
+        } catch (error) {
+          toast.error(getErrorMessage(error));
         }
       },
     };
@@ -148,9 +177,9 @@ export default function PlaceOrder() {
           toast.error(razorpay.data.message);
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 

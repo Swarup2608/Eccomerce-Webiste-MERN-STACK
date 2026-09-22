@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 
 export default function AdminLogin() {
@@ -22,9 +23,9 @@ export default function AdminLogin() {
         setError(true);
         toast.error(response.data.message);
       }
-    } catch (err: any) {
+    } catch (err) {
       setError(true);
-      toast.error(err.message);
+      toast.error(getErrorMessage(err));
     }
   };
 

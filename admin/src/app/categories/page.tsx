@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 import type { Category } from '@/lib/types';
 
@@ -28,9 +29,9 @@ export default function Categories() {
       const response = await axios.post(backendURL + '/api/category/admin-list', {}, { headers: { token } });
       if (response.data.success) setCategories(response.data.categories);
       else toast.error(response.data.message);
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -82,9 +83,9 @@ export default function Categories() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -96,8 +97,8 @@ export default function Categories() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -110,8 +111,8 @@ export default function Categories() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 

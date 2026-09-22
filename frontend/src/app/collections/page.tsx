@@ -217,7 +217,7 @@ function CollectionsInner() {
             </div>
             {search && (
               <span className="tag tag-accent">
-                "{search}" <button type="button" onClick={() => setSearch('')} style={{ background: 'none', border: 0, color: 'inherit', cursor: 'pointer', marginLeft: 6, padding: 0 }}>✕</button>
+                &quot;{search}&quot; <button type="button" onClick={() => setSearch('')} style={{ background: 'none', border: 0, color: 'inherit', cursor: 'pointer', marginLeft: 6, padding: 0 }}>✕</button>
               </span>
             )}
           </div>

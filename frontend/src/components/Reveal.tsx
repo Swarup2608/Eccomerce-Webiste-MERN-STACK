@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, ReactNode, CSSProperties } from 'react';
+import { useEffect, useRef, useState, ReactNode, CSSProperties, ElementType } from 'react';
 
 export default function Reveal({
   children,
@@ -32,7 +32,7 @@ export default function Reveal({
     return () => io.disconnect();
   }, []);
 
-  const Comp = Tag as any;
+  const Comp = Tag as ElementType;
   return (
     <Comp ref={ref} data-reveal={visible ? 'in' : ''} style={style}>
       {children}

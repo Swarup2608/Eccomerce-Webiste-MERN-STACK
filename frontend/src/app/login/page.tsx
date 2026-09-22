@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useShop } from '@/context/useShop';
 
 export default function Login() {
@@ -30,9 +31,9 @@ export default function Login() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 

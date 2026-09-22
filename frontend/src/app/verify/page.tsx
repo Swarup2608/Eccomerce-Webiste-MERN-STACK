@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useShop } from '@/context/useShop';
 
 function VerifyInner() {
@@ -28,9 +29,9 @@ function VerifyInner() {
           setState('fail');
           toast.error(response.data.message);
         }
-      } catch (error: any) {
+      } catch (error) {
         setState('fail');
-        toast.error(error.message);
+        toast.error(getErrorMessage(error));
       }
     };
     verify();

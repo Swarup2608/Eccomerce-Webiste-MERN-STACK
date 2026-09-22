@@ -1,21 +1,17 @@
 import jwt from 'jsonwebtoken';
 import type { RequestHandler } from 'express';
 import { env } from '../config/env.js';
+import { AppError } from '../utils/appError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
-const authUser: RequestHandler = async (req, res, next) => {
-
+const authUser: RequestHandler = asyncHandler(async (req, res, next) => {
     const { token } = req.headers;
     if (!token || Array.isArray(token)) {
-        return res.json({ success: false, message: "Not Authorized Login Again!" })
+        throw new AppError(401, "Not Authorized Login Again!");
     }
-    try {
-        const token_decode = jwt.verify(token, env.JWT_SECRET_KEY);
-        req.body.userId = typeof token_decode === 'string' ? token_decode : token_decode.id;
-        next();
-    } catch (error: any) {
-        console.log(error);
-        return res.json({ success: false, message: error.message })
-    }
-}
+    const token_decode = jwt.verify(token, env.JWT_SECRET_KEY);
+    req.body.userId = typeof token_decode === 'string' ? token_decode : token_decode.id;
+    next();
+});
 
 export default authUser;

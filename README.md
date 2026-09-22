@@ -383,10 +383,10 @@ Docker support (`Dockerfile` and `docker-compose.yml`) is on the roadmap.
 
 **Current state**
 
-- No unit tests
-- No integration tests
+- Backend has a small test suite (`backend/tests/`, 18 tests via `node --test`/`tsx`) covering env validation and the health endpoint — no coverage yet for controllers, pricing, or the payment flows
+- No frontend/admin unit or integration tests
 - No end-to-end tests
-- No backend linting (frontend and admin have ESLint configured)
+- No backend linting (no `lint` script in `backend/package.json`). `frontend` and `admin` both lint clean via ESLint 9 flat config (`npm run lint --workspaces --if-present` from the root)
 
 **Roadmap**
 

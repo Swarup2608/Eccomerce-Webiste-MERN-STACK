@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 import { ORDER_STATUSES, type Order } from '@/lib/types';
 import { downloadCSV } from '@/lib/csv';
@@ -35,9 +36,9 @@ export default function AdminOrders() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -57,8 +58,8 @@ export default function AdminOrders() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -71,8 +72,8 @@ export default function AdminOrders() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -100,8 +101,8 @@ export default function AdminOrders() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -129,8 +130,8 @@ export default function AdminOrders() {
         ]),
       ];
       downloadCSV(`orders-${Date.now()}.csv`, rows);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 

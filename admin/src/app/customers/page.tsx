@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 import type { Customer } from '@/lib/types';
 
@@ -28,8 +29,8 @@ export default function Customers() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -49,8 +50,8 @@ export default function Customers() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 

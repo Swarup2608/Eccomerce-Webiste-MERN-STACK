@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 import SummaryCards, { type SummaryData } from '@/components/analytics/SummaryCards';
 import RevenueChart, { type RevenuePoint } from '@/components/analytics/RevenueChart';
@@ -36,7 +37,7 @@ export default function Dashboard() {
       if (r.data.success) setRevenue(r.data.series);
       if (o.data.success) setStatusBreakdown(o.data.breakdown);
       if (p.data.success) setTopProducts(p.data.products);
-    }).catch((error) => toast.error(error.message));
+    }).catch((error) => toast.error(getErrorMessage(error)));
   }, [token, days, backendURL]);
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/lib/errors';
 import { useAdmin } from '@/context/useAdmin';
 import type { Coupon } from '@/lib/types';
 
@@ -21,8 +22,8 @@ export default function Coupons() {
       const response = await axios.post(backendURL + '/api/coupon/list', {}, { headers: { token } });
       if (response.data.success) setCoupons(response.data.coupons);
       else toast.error(response.data.message);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -71,8 +72,8 @@ export default function Coupons() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -81,8 +82,8 @@ export default function Coupons() {
       const response = await axios.post(backendURL + '/api/coupon/update', { id: c._id, active: !c.active }, { headers: { token } });
       if (response.data.success) fetchCoupons();
       else toast.error(response.data.message);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -95,8 +96,8 @@ export default function Coupons() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 

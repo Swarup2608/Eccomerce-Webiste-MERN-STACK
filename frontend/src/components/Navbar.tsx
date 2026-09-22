@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { useShop } from '@/context/useShop';
 
 const NAV = [
@@ -16,7 +15,6 @@ export default function Navbar() {
   const { search, setSearch, getCartCount, token, logout } = useShop();
   const pathname = usePathname();
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header

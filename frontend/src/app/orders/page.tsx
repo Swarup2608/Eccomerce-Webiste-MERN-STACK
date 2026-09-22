@@ -22,7 +22,7 @@ export default function Orders() {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
     }
   };
